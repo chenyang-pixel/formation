@@ -1,6 +1,6 @@
 # CI : qualité et secrets
 
-Atelier 06-01 préparé et vérifié localement le 9 octobre 2026, puis migré vers `chenyang-pixel/formation`, branche `ci-pipeline`. Le dépôt personnel a été créé depuis le modèle avec un nouveau commit initial `68f2d4e876e08ebdd1c08a8ee83844175cd89b5f`. Les validations GitHub Actions et les liens de preuve seront ajoutés après exécution.
+Atelier 06-01 préparé et vérifié localement le 9 octobre 2026, puis migré vers `chenyang-pixel/formation`, branche `ci-pipeline`. Le dépôt personnel a été créé depuis le modèle avec un nouveau commit initial `68f2d4e876e08ebdd1c08a8ee83844175cd89b5f`. Le rendu est la [PR en brouillon n° 1](https://github.com/chenyang-pixel/formation/pull/1). Les deux échecs volontaires ont été observés sur GitHub Actions et leurs liens sont conservés ci-dessous et dans la description de la PR.
 
 ## Fonctionnement
 
@@ -65,13 +65,25 @@ La couverture mesure l'exécution du code, pas la conformité de toutes les règ
 
 Ils ne sont pas corrigés dans cet atelier CI. Les nouveaux tests n'affirment pas que ces résultats erronés sont corrects. Une CI verte ne valide donc pas à elle seule toutes les règles métier.
 
-## Rendu GitHub restant
+## Rendu GitHub et preuves distantes
 
-Le rendu prévu est une PR **en brouillon**, branche `ci-pipeline` vers `main`, titre **CI : pipeline qualité et secrets**. Il reste à publier les modifications utiles, exécuter les deux pièges sur cette PR, conserver leurs vrais liens rouges, puis vérifier les deux jobs verts après retrait des pièges. Aucun lien d'exécution distante n'a été fabriqué.
+PR **en brouillon** : [CI : pipeline qualité et secrets](https://github.com/chenyang-pixel/formation/pull/1), branche `ci-pipeline` vers `main` de `chenyang-pixel/formation`. Le premier commit de `main` est conservé ; la PR n'a pas été fusionnée.
 
-Pour le piège du secret, supprimer seulement le fichier ou faire un revert laisse le secret dans l'historique analysé. La fiche demande de retirer le commit du piège de la branche dédiée. Cette manipulation n'a pas été effectuée sur le projet. Avant toute publication, relire les fichiers à inclure : le dépôt indépendant `audit-sync-tarifs/` et les autres travaux locaux ne font pas partie de cette CI.
+| Étape réelle | Exécution ou job | Résultat observé |
+| --- | --- | --- |
+| Installation du pipeline | [Run 37927271370](https://github.com/chenyang-pixel/formation/actions/runs/37927271370) | `qualite` et `secrets` verts. Node 24.21.0, 38 résultats de tests réussis, couverture du calcul 100 % lignes/branches. |
+| Piège 1 : assertion 881 au lieu de 880 | [Job qualite rouge](https://github.com/chenyang-pixel/formation/actions/runs/37927405576/job/113809542384) | Échec à `npm test` avec `880 !== 881` ; `secrets` reste vert. |
+| Revert du piège 1 | [Run 37927508887](https://github.com/chenyang-pixel/formation/actions/runs/37927508887) | Deux jobs de nouveau verts. |
+| Piège 2 : jeton fictif commité avec `--no-verify` | [Job secrets rouge](https://github.com/chenyang-pixel/formation/actions/runs/37927596163/job/113810171516) | `piege.js:1`, `generic-api-key`, valeur masquée ; code de sortie 1. |
+| Qualité pendant le piège 2 | [Job qualite vert](https://github.com/chenyang-pixel/formation/actions/runs/37927596163/job/113810171727) | 38 résultats réussis, couverture du calcul 100 % lignes/branches/fonctions. |
 
-La configuration réelle des protections de branche et les droits du compte GitHub sont **UNKNOWN** pour le dépôt personnel de rendu. Sans règle imposant les contrôles réussis, un job rouge n'est pas à lui seul une interdiction technique de fusionner.
+Le second piège produit **2 positions détectées pour un seul jeton fictif** : son commit `baddddfac3ff79ab65ed49bcf18b8edb07e2906d` et le merge de test créé par GitHub. C'est l'effet du scan explicite des commits de fusion ; ce ne sont pas deux secrets distincts.
+
+Après sauvegarde du lien rouge, le commit du secret a été retiré de la branche de PR, puis le rapport ajouté à partir du commit propre `0709c565a52ccba0aa7a7ddd52db6f0725e029e9`. La mise à jour distante utilise un `--force-with-lease` limité à `ci-pipeline`, avec l'identifiant exact attendu du commit du piège. Le fichier `piege.js` est absent de l'état final. Le dernier passage et son lien sont renseignés dans la description de la PR après vérification des deux jobs sur le commit final.
+
+Le dépôt est **public**. Lecture de l'API GitHub lors du rendu : `main` a `protected: false` et aucun ruleset n'est actif. Les jobs signalent les échecs ; aucune règle de branche n'impose leur réussite avant fusion. Aucun réglage de visibilité, de collaboration ou de protection n'a été modifié.
+
+Le dossier de travail pour ce rendu est `formation-github`, à côté de l'ancien `df-commandes`. Ce dernier reste utile : il conserve les branches des exercices précédents et le dépôt Python indépendant. Il n'a donc pas été supprimé.
 
 ## Références vérifiées
 
@@ -80,4 +92,4 @@ La configuration réelle des protections de branche et les droits du compte GitH
 - [Documentation du test runner Node 24](https://nodejs.org/docs/latest-v24.x/api/test.html).
 - [Commande Git exécutée par Gitleaks 8.30.1](https://github.com/gitleaks/gitleaks/blob/v8.30.1/sources/git.go) et [documentation de git log](https://git-scm.com/docs/git-log) : affichage explicite des diff de fusion.
 
-Confiance haute sur les vérifications locales effectuées ; exécution sur un runner GitHub et preuve des deux jobs rouges puis verts non réalisées.
+Confiance haute : commandes locales, jobs distants et journaux des deux pièges vérifiés. Le résultat ne constitue pas une validation de toutes les règles métier signalées plus haut.
