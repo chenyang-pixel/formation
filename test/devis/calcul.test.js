@@ -138,3 +138,15 @@ test('arrondir conserve les centimes et choisit le centime le plus proche', () =
   assert.equal(arrondir(1.234), 1.23);
   assert.equal(arrondir(1.236), 1.24);
 });
+
+// Piège 1 : test volontairement faux, retiré après la preuve CI.
+{
+  const { test } = require('node:test');
+  const assert = require('node:assert/strict');
+  const { calculerDevis } = require('../../src/devis/calcul');
+  test('piège 1 : 100 vis à 10 € pour un client ordinaire', () => {
+    const vis = { reference: 'VIS', prix_ht: 10 };
+    const devis = calculerDevis({ grand_compte: 0 }, [{ produit: vis, quantite: 100 }]);
+    assert.equal(devis.totalHT, 881);
+  });
+}
